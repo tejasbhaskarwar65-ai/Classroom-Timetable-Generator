@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#3b82f6" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  
+  <!-- WhatsApp & Social Media Open Graph Preview Tags -->
+  <meta property="og:title" content="College Timetable Generator - University Lecture Scheduler" />
+  <meta property="og:description" content="Generate conflict-free college timetables with weekly course allocations, max 2 lectures/day limit, and 1-tap WhatsApp sharing." />
+  <meta property="og:type" content="website" />
+  
+  <title>College Timetable Generator</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --radius: 12px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #6366f1 100%);
+      color: white;
+      padding: 24px 32px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header p {
+      opacity: 0.9;
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .preset-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-preset {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s ease;
+    }
+
+    .btn-preset:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .layout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .stat-banner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      background: var(--bg);
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      text-align: center;
+    }
+
+    .stat-box .num {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat-box .lbl {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .balance-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .balance-badge.ok {
+      background: var(--success-light);
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .balance-badge.warning {
+      background: var(--warning-light);
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .balance-badge.error {
+      background: var(--danger-light);
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .subject-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-bottom: 16px;
+    }
+
+    .subject-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .subject-item:hover {
+      border-color: #cbd5e1;
+    }
+
+    .subject-item.over-limit {
+      border-color: var(--danger);
+      background: #fef2f2;
+    }
+
+    .subject-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .subject-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .subject-limit {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-left: 6px;
+    }
+
+    .subject-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-step {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+
+    .btn-step:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .count-display {
+      font-weight: 700;
+      font-size: 0.9rem;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .btn-del {
+      border: none;
+      background: none;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 4px;
+      margin-left: 4px;
+      border-radius: 4px;
+    }
+
+    .btn-del:hover {
+      color: var(--danger);
+      background: var(--danger-light);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      box-shadow: 0 4px 8px rgba(37, 99, 235, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg);
+    }
+
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      width: auto;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .view-tabs {
+      display: flex;
+      background: var(--bg);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      padding: 6px 14px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .action-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Timetable Table Styles */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+    }
+
+    table.timetable {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+    }
+
+    table.timetable th, table.timetable td {
+      border: 1px solid var(--border);
+      padding: 12px 10px;
+    }
+
+    table.timetable th {
+      background: #f8fafc;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    table.timetable td.day-col {
+      background: #f8fafc;
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.95rem;
+      width: 90px;
+    }
+
+    .period-card {
+      border-radius: 6px;
+      padding: 8px 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-height: 52px;
+      justify-content: center;
+      transition: transform 0.15s ease;
+    }
+
+    .period-card:hover {
+      transform: scale(1.03);
+    }
+
+    .period-card .sub-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .period-card .sub-meta {
+      font-size: 0.7rem;
+      opacity: 0.8;
+      font-weight: 500;
+    }
+
+    /* Text Output Box */
+    .text-box {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    /* Summary Stats Cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .summary-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .summary-item .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .summary-item .info .s-name {
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .summary-item .info .s-count {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .alert-error {
+      background: var(--danger-light);
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alert-icon {
+      font-size: 1.25rem;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        background: white;
+      }
+      header, .layout-grid > div:first-child, .toolbar, .preset-bar {
+        display: none !important;
+      }
+      .layout-grid {
+        display: block;
+      }
+      .card {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+      }
+      table.timetable th, table.timetable td {
+        padding: 8px 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>
+          <span>🎓</span> College Timetable Generator
+        </h1>
+        <p>University & College Lecture Schedule Planner &bull; Max 2 lectures per course daily</p>
+      </div>
+      <div class="preset-bar">
+        <span style="font-size:0.85rem; font-weight:600; align-self:center; opacity:0.9;">College Programs:</span>
+        <button class="btn-preset" onclick="loadCollegePreset('btech_cs')">B.Tech / CS (6d &times; 5p)</button>
+        <button class="btn-preset" onclick="loadCollegePreset('eng_5d')">Engineering (5d &times; 6p)</button>
+        <button class="btn-preset" onclick="loadCollegePreset('bba_mba')">Management / BBA (5d &times; 5p)</button>
+        <button class="btn-preset" onclick="loadCollegePreset('bca_it')">BCA / IT (6d &times; 6p)</button>
+      </div>
+    </header>
+
+    <div class="layout-grid">
+      <!-- Left Column: Controls & Configuration -->
+      <div>
+        <div class="card">
+          <div class="card-title">
+            <span>⚙️ College Schedule Config</span>
+          </div>
+
+          <div class="form-group">
+            <div class="input-row">
+              <div style="flex:1;">
+                <label for="inputDays">Working Days</label>
+                <select id="inputDays" onchange="onSettingChange()">
+                  <option value="1">1 Day (Mon)</option>
+                  <option value="2">2 Days (Mon-Tue)</option>
+                  <option value="3">3 Days (Mon-Wed)</option>
+                  <option value="4">4 Days (Mon-Thu)</option>
+                  <option value="5">5 Days (Mon-Fri)</option>
+                  <option value="6" selected>6 Days (Mon-Sat)</option>
+                </select>
+              </div>
+              <div style="flex:1;">
+                <label for="inputPeriods">Lectures / Day</label>
+                <select id="inputPeriods" onchange="onSettingChange()">
+                  <option value="3">3 Lectures</option>
+                  <option value="4">4 Lectures</option>
+                  <option value="5" selected>5 Lectures</option>
+                  <option value="6">6 Lectures</option>
+                  <option value="7">7 Lectures</option>
+                  <option value="8">8 Lectures</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live slot balance summary -->
+          <div class="stat-banner">
+            <div class="stat-box">
+              <div class="num" id="statRequiredSlots">30</div>
+              <div class="lbl">Total Lecture Slots</div>
+            </div>
+            <div class="stat-box">
+              <div class="num" id="statAllocatedSlots" style="color:#0f172a;">30</div>
+              <div class="lbl">Allocated</div>
+            </div>
+          </div>
+
+          <div id="balanceBadge" class="balance-badge ok">
+            <span id="badgeIcon">✓</span>
+            <span id="badgeText">Perfect! All lecture slots allocated.</span>
+          </div>
+
+          <!-- Add Course / Subject Form -->
+          <label>Add College Course</label>
+          <div class="input-row" style="margin-bottom: 14px;">
+            <input type="text" id="newSubjectName" placeholder="Course Name (e.g. Data Structures)" onkeydown="if(event.key==='Enter') addSubject()" />
+            <input type="number" id="newSubjectPeriods" min="1" value="4" style="width: 80px;" onkeydown="if(event.key==='Enter') addSubject()" title="Weekly periods/hours" />
+            <button class="btn btn-secondary btn-sm" onclick="addSubject()">+ Add</button>
+          </div>
+
+          <!-- Courses List -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <label style="margin:0;">Courses (<span id="subjectCount">0</span>)</label>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-preset" style="color:var(--primary); background:var(--primary-light); border-color:#bfdbfe; padding:2px 8px; font-size:0.75rem;" onclick="autoFillRemaining()">Auto-balance</button>
+              <button class="btn-preset" style="color:#94a3b8; background:transparent; border-color:#e2e8f0; padding:2px 8px; font-size:0.75rem;" onclick="clearAllSubjects()">Clear</button>
+            </div>
+          </div>
+
+          <div class="subject-list" id="subjectListContainer">
+            <!-- Dynamically populated -->
+          </div>
+
+          <button id="btnGenerate" class="btn btn-primary" onclick="generateSchedule()">
+            ⚡ Generate College Timetable
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column: Timetable Output -->
+      <div>
+        <div class="card">
+          <div class="toolbar">
+            <div class="view-tabs">
+              <button class="tab-btn active" id="tabGrid" onclick="switchView('grid')">📅 Schedule Grid</button>
+              <button class="tab-btn" id="tabText" onclick="switchView('text')">📄 Text Output</button>
+              <button class="tab-btn" id="tabStats" onclick="switchView('stats')">📊 Course Stats</button>
+            </div>
+
+            <div class="action-group">
+              <button class="btn btn-secondary btn-sm" style="color:#047857; background:#ecfdf5; border-color:#a7f3d0; font-weight:600;" onclick="shareOnWhatsApp()">💬 Share on WhatsApp</button>
+              <button class="btn btn-secondary btn-sm" onclick="copyScheduleText()">📋 Copy</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportCsv()">📥 CSV</button>
+              <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Print</button>
+            </div>
+          </div>
+
+          <div id="errorContainer" style="display:none;" class="alert-error">
+            <span class="alert-icon">⚠️</span>
+            <span id="errorMessage">Error text</span>
+          </div>
+
+          <!-- View 1: Timetable Grid -->
+          <div id="viewGrid" class="table-container">
+            <table class="timetable" id="timetableTable">
+              <!-- Dynamically generated -->
+            </table>
+          </div>
+
+          <!-- View 2: Text View (matching original python output) -->
+          <div id="viewText" style="display:none;">
+            <div class="text-box" id="textBoxContent"></div>
+          </div>
+
+          <!-- View 3: Subject Breakdown -->
+          <div id="viewStats" style="display:none;">
+            <h4 style="font-size:0.95rem; font-weight:600; margin-bottom:10px;">Weekly Course Load Breakdown</h4>
+            <div class="summary-grid" id="summaryGridContainer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    // Color Palette for College Subjects
+    const PALETTE = [
+      { bg: "#eff6ff", border: "#bfdbfe", text: "#1e40af", dot: "#3b82f6" }, // Blue
+      { bg: "#ecfdf5", border: "#a7f3d0", text: "#065f46", dot: "#10b981" }, // Emerald
+      { bg: "#e0e7ff", border: "#c7d2fe", text: "#3730a3", dot: "#6366f1" }, // Indigo
+      { bg: "#fef3c7", border: "#fde68a", text: "#92400e", dot: "#f59e0b" }, // Amber
+      { bg: "#f3e8ff", border: "#e9d5ff", text: "#6b21a8", dot: "#a855f7" }, // Purple
+      { bg: "#cffafe", border: "#a5f3fc", text: "#155e75", dot: "#06b6d4" }, // Cyan
+      { bg: "#ffe4e6", border: "#fecdd3", text: "#9f1239", dot: "#f43f5e" }, // Rose
+      { bg: "#ffedd5", border: "#fed7aa", text: "#9a3412", dot: "#f97316" }, // Orange
+      { bg: "#fae8ff", border: "#f5d0fe", text: "#86198f", dot: "#d946ef" }, // Fuchsia
+      { bg: "#ecfccb", border: "#d9f99d", text: "#3f6212", dot: "#84cc16" }, // Lime
+      { bg: "#f1f5f9", border: "#cbd5e1", text: "#334155", dot: "#64748b" }  // Slate
+    ];
+
+    // Default College Courses (6 days x 5 periods = 30 slots)
+    let subjects = [
+      { name: "Data Structures & Algorithms", periods: 6 },
+      { name: "Operating Systems", periods: 5 },
+      { name: "Database Management Systems", periods: 5 },
+      { name: "Computer Networks", periods: 5 },
+      { name: "Linear Algebra & Probability", periods: 4 },
+      { name: "Software Engineering", periods: 3 },
+      { name: "Lab / Practical Session", periods: 2 }
+    ];
+
+    let currentView = 'grid';
+    let currentSchedule = null;
+
+    function getSubjectColor(index) {
+      return PALETTE[index % PALETTE.length];
+    }
+
+    function init() {
+      renderSubjectList();
+      updateStats();
+      generateSchedule();
+    }
+
+    function onSettingChange() {
+      updateStats();
+    }
+
+    function updateStats() {
+      const days = parseInt(document.getElementById("inputDays").value, 10);
+      const perDay = parseInt(document.getElementById("inputPeriods").value, 10);
+      const required = days * perDay;
+      const allocated = subjects.reduce((sum, s) => sum + (s.periods || 0), 0);
+      const maxAllowedPerSub = days * 2;
+
+      document.getElementById("statRequiredSlots").innerText = required;
+      document.getElementById("statAllocatedSlots").innerText = allocated;
+      document.getElementById("subjectCount").innerText = subjects.length;
+
+      const badge = document.getElementById("balanceBadge");
+      const badgeIcon = document.getElementById("badgeIcon");
+      const badgeText = document.getElementById("badgeText");
+      const btnGen = document.getElementById("btnGenerate");
+
+      const badSubject = subjects.find(s => s.periods > maxAllowedPerSub);
+
+      if (badSubject) {
+        badge.className = "balance-badge error";
+        badgeIcon.innerText = "✕";
+        badgeText.innerText = `Limit error: "${badSubject.name}" requires ${badSubject.periods} lectures (Max allowed: ${maxAllowedPerSub} for ${days} days)`;
+        btnGen.disabled = true;
+      } else if (allocated === required) {
+        badge.className = "balance-badge ok";
+        badgeIcon.innerText = "✓";
+        badgeText.innerText = `All ${required} lecture slots matched! Ready to generate.`;
+        btnGen.disabled = false;
+      } else if (allocated < required) {
+        const diff = required - allocated;
+        badge.className = "balance-badge warning";
+        badgeIcon.innerText = "⏳";
+        badgeText.innerText = `Need ${diff} more lecture${diff > 1 ? 's' : ''} to fill weekly slots.`;
+        btnGen.disabled = true;
+      } else {
+        const diff = allocated - required;
+        badge.className = "balance-badge error";
+        badgeIcon.innerText = "✕";
+        badgeText.innerText = `Over-allocated by ${diff} lecture${diff > 1 ? 's' : ''}.`;
+        btnGen.disabled = true;
+      }
+    }
+
+    function renderSubjectList() {
+      const container = document.getElementById("subjectListContainer");
+      container.innerHTML = "";
+      const days = parseInt(document.getElementById("inputDays").value, 10);
+      const maxAllowed = days * 2;
+
+      subjects.forEach((subj, idx) => {
+        const col = getSubjectColor(idx);
+        const isOver = subj.periods > maxAllowed;
+
+        const div = document.createElement("div");
+        div.className = `subject-item ${isOver ? 'over-limit' : ''}`;
+        div.innerHTML = `
+          <div class="subject-info">
+            <span class="color-dot" style="background:${col.dot}"></span>
+            <span class="subject-name" title="${subj.name}">${subj.name}</span>
+            <span class="subject-limit">(max ${maxAllowed}/wk)</span>
+          </div>
+          <div class="subject-controls">
+            <button class="btn-step" onclick="changePeriod(${idx}, -1)">−</button>
+            <span class="count-display">${subj.periods}</span>
+            <button class="btn-step" onclick="changePeriod(${idx}, 1)">+</button>
+            <button class="btn-del" title="Delete" onclick="removeSubject(${idx})">✕</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function changePeriod(index, delta) {
+      if (subjects[index].periods + delta >= 1) {
+        subjects[index].periods += delta;
+        renderSubjectList();
+        updateStats();
+      }
+    }
+
+    function addSubject() {
+      const nameInput = document.getElementById("newSubjectName");
+      const periodInput = document.getElementById("newSubjectPeriods");
+      const name = nameInput.value.trim();
+      const periods = parseInt(periodInput.value, 10);
+
+      if (!name) {
+        alert("Please enter a course name.");
+        return;
+      }
+      if (isNaN(periods) || periods < 1) {
+        alert("Please enter a valid lecture count (at least 1).");
+        return;
+      }
+
+      subjects.push({ name, periods });
+      nameInput.value = "";
+      periodInput.value = "4";
+      nameInput.focus();
+
+      renderSubjectList();
+      updateStats();
+    }
+
+    function removeSubject(index) {
+      subjects.splice(index, 1);
+      renderSubjectList();
+      updateStats();
+    }
+
+    function clearAllSubjects() {
+      if (confirm("Clear all courses?")) {
+        subjects = [];
+        renderSubjectList();
+        updateStats();
+      }
+    }
+
+    function autoFillRemaining() {
+      const days = parseInt(document.getElementById("inputDays").value, 10);
+      const perDay = parseInt(document.getElementById("inputPeriods").value, 10);
+      const required = days * perDay;
+      const allocated = subjects.reduce((sum, s) => sum + (s.periods || 0), 0);
+      const diff = required - allocated;
+      const maxAllowed = days * 2;
+
+      if (diff === 0) return;
+
+      if (diff > 0) {
+        let leftToAdd = diff;
+        for (let i = 0; i < subjects.length && leftToAdd > 0; i++) {
+          const headroom = maxAllowed - subjects[i].periods;
+          if (headroom > 0) {
+            const add = Math.min(headroom, leftToAdd);
+            subjects[i].periods += add;
+            leftToAdd -= add;
+          }
+        }
+        if (leftToAdd > 0) {
+          subjects.push({ name: "Seminar / Library Research", periods: leftToAdd });
+        }
+      } else {
+        let leftToSub = Math.abs(diff);
+        for (let i = subjects.length - 1; i >= 0 && leftToSub > 0; i--) {
+          if (subjects[i].periods > 1) {
+            const sub = Math.min(subjects[i].periods - 1, leftToSub);
+            subjects[i].periods -= sub;
+            leftToSub -= sub;
+          }
+        }
+      }
+
+      renderSubjectList();
+      updateStats();
+    }
+
+    // College Presets
+    function loadCollegePreset(type) {
+      if (type === 'btech_cs') {
+        document.getElementById("inputDays").value = "6";
+        document.getElementById("inputPeriods").value = "5";
+        subjects = [
+          { name: "Data Structures & Algorithms", periods: 6 },
+          { name: "Operating Systems", periods: 5 },
+          { name: "Database Management Systems", periods: 5 },
+          { name: "Computer Networks", periods: 5 },
+          { name: "Linear Algebra & Discrete Math", periods: 4 },
+          { name: "Software Engineering", periods: 3 },
+          { name: "CS Lab Practical", periods: 2 }
+        ];
+      } else if (type === 'eng_5d') {
+        document.getElementById("inputDays").value = "5";
+        document.getElementById("inputPeriods").value = "6";
+        subjects = [
+          { name: "Engineering Mathematics", periods: 6 },
+          { name: "Thermodynamics", periods: 5 },
+          { name: "Solid Mechanics", periods: 5 },
+          { name: "Electrical Machines", periods: 5 },
+          { name: "Control Systems", periods: 4 },
+          { name: "Fluid Mechanics", periods: 3 },
+          { name: "Workshop Practical", periods: 2 }
+        ];
+      } else if (type === 'bba_mba') {
+        document.getElementById("inputDays").value = "5";
+        document.getElementById("inputPeriods").value = "5";
+        subjects = [
+          { name: "Financial Accounting", periods: 5 },
+          { name: "Marketing Management", periods: 5 },
+          { name: "Organizational Behavior", periods: 5 },
+          { name: "Business Economics", periods: 4 },
+          { name: "Corporate Finance", periods: 3 },
+          { name: "Business Analytics", periods: 3 }
+        ];
+      } else if (type === 'bca_it') {
+        document.getElementById("inputDays").value = "6";
+        document.getElementById("inputPeriods").value = "6";
+        subjects = [
+          { name: "Java Programming", periods: 6 },
+          { name: "Web Technologies & React", periods: 6 },
+          { name: "Data Communications", periods: 6 },
+          { name: "Python for Data Science", periods: 6 },
+          { name: "Cloud Computing Basics", periods: 5 },
+          { name: "Cybersecurity Fundamentals", periods: 4 },
+          { name: "Project / Seminar", periods: 3 }
+        ];
+      }
+      renderSubjectList();
+      updateStats();
+      generateSchedule();
+    }
+
+    // Core Timetable Solver: Greedy heuristic with backtracking safety
+    function solveSchedule(daysCount, perDayCount, subjectDefs) {
+      const required = daysCount * perDayCount;
+      const allocated = subjectDefs.reduce((acc, s) => acc + s.periods, 0);
+
+      if (allocated !== required) {
+        return {
+          ok: false,
+          error: `Total weekly periods (${allocated}) must equal available slots (${required}).`
+        };
+      }
+
+      for (const s of subjectDefs) {
+        if (s.periods > daysCount * 2) {
+          return {
+            ok: false,
+            error: `Timetable cannot be generated: "${s.name}" requires ${s.periods} lectures in ${daysCount} days, but the limit is 2 per day.`
+          };
+        }
+      }
+
+      const grid = Array.from({ length: daysCount }, () => Array(perDayCount).fill(null));
+      const remaining = {};
+      subjectDefs.forEach(s => { remaining[s.name] = s.periods; });
+
+      function search(day, period) {
+        if (day === daysCount) return true;
+
+        const nextDay = (period + 1 === perDayCount) ? day + 1 : day;
+        const nextPeriod = (period + 1 === perDayCount) ? 0 : period + 1;
+
+        const todaySubjects = grid[day].slice(0, period);
+
+        // Candidates: remaining > 0 and count today < 2
+        const candidates = subjectDefs.filter(s =>
+          remaining[s.name] > 0 && todaySubjects.filter(x => x === s.name).length < 2
+        );
+
+        // Prioritize most remaining lectures first, entered order on ties
+        candidates.sort((a, b) => {
+          if (remaining[b.name] !== remaining[a.name]) {
+            return remaining[b.name] - remaining[a.name];
+          }
+          return subjectDefs.indexOf(a) - subjectDefs.indexOf(b);
+        });
+
+        for (const cand of candidates) {
+          grid[day][period] = cand.name;
+          remaining[cand.name]--;
+
+          if (search(nextDay, nextPeriod)) return true;
+
+          grid[day][period] = null;
+          remaining[cand.name]++;
+        }
+
+        return false;
+      }
+
+      const success = search(0, 0);
+      if (!success) {
+        return {
+          ok: false,
+          error: "Could not place courses while adhering to maximum 2 lectures per day limit."
+        };
+      }
+
+      return {
+        ok: true,
+        days: DAY_NAMES.slice(0, daysCount),
+        grid: grid
+      };
+    }
+
+    function generateSchedule() {
+      const days = parseInt(document.getElementById("inputDays").value, 10);
+      const perDay = parseInt(document.getElementById("inputPeriods").value, 10);
+      const errBox = document.getElementById("errorContainer");
+      const errMsg = document.getElementById("errorMessage");
+
+      const res = solveSchedule(days, perDay, subjects);
+
+      if (!res.ok) {
+        errBox.style.display = "flex";
+        errMsg.innerText = res.error;
+        document.getElementById("viewGrid").style.display = "none";
+        document.getElementById("viewText").style.display = "none";
+        document.getElementById("viewStats").style.display = "none";
+        currentSchedule = null;
+        return;
+      }
+
+      errBox.style.display = "none";
+      currentSchedule = res;
+
+      renderGrid(res);
+      renderText(res);
+      renderStats(res);
+
+      switchView(currentView);
+    }
+
+    function renderGrid(schedule) {
+      const table = document.getElementById("timetableTable");
+      const { days, grid } = schedule;
+      const perDay = grid[0].length;
+
+      let html = "<thead><tr><th>Day / Lecture</th>";
+      for (let p = 1; p <= perDay; p++) {
+        html += `<th>Lecture ${p}</th>`;
+      }
+      html += "</tr></thead><tbody>";
+
+      const subjectColorMap = {};
+      subjects.forEach((s, i) => {
+        subjectColorMap[s.name] = getSubjectColor(i);
+      });
+
+      days.forEach((day, dIdx) => {
+        html += `<tr><td class="day-col">${day}</td>`;
+        
+        const dayCounts = {};
+
+        grid[dIdx].forEach((subName) => {
+          dayCounts[subName] = (dayCounts[subName] || 0) + 1;
+          const occurrence = dayCounts[subName];
+          const totalToday = grid[dIdx].filter(x => x === subName).length;
+          const col = subjectColorMap[subName] || PALETTE[0];
+
+          html += `
+            <td>
+              <div class="period-card" style="background:${col.bg}; border-color:${col.border}; color:${col.text};">
+                <span class="sub-title">${subName}</span>
+                <span class="sub-meta">${totalToday > 1 ? `Lecture ${occurrence} of ${totalToday} today` : 'Single lecture'}</span>
+              </div>
+            </td>
+          `;
+        });
+        html += "</tr>";
+      });
+
+      html += "</tbody>";
+      table.innerHTML = html;
+    }
+
+    function renderText(schedule) {
+      const { days, grid } = schedule;
+      let text = "";
+      days.forEach((day, idx) => {
+        text += `${day}: ${grid[idx].join(", ")}\n`;
+      });
+      document.getElementById("textBoxContent").innerText = text.trim();
+    }
+
+    function renderStats(schedule) {
+      const container = document.getElementById("summaryGridContainer");
+      container.innerHTML = "";
+      const { days, grid } = schedule;
+
+      subjects.forEach((s, sIdx) => {
+        const col = getSubjectColor(sIdx);
+        const dayBreakdown = days.map((day, dIdx) => {
+          const cnt = grid[dIdx].filter(x => x === s.name).length;
+          return `${day}:${cnt}`;
+        }).join(" ");
+
+        const div = document.createElement("div");
+        div.className = "summary-item";
+        div.innerHTML = `
+          <div class="dot" style="background:${col.dot}"></div>
+          <div class="info">
+            <div class="s-name">${s.name}</div>
+            <div class="s-count">${s.periods} lectures/wk &bull; ${dayBreakdown}</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function switchView(view) {
+      currentView = view;
+      document.getElementById("tabGrid").className = `tab-btn ${view === 'grid' ? 'active' : ''}`;
+      document.getElementById("tabText").className = `tab-btn ${view === 'text' ? 'active' : ''}`;
+      document.getElementById("tabStats").className = `tab-btn ${view === 'stats' ? 'active' : ''}`;
+
+      document.getElementById("viewGrid").style.display = (view === 'grid' && currentSchedule) ? 'block' : 'none';
+      document.getElementById("viewText").style.display = (view === 'text' && currentSchedule) ? 'block' : 'none';
+      document.getElementById("viewStats").style.display = (view === 'stats' && currentSchedule) ? 'block' : 'none';
+    }
+
+    function shareOnWhatsApp() {
+      if (!currentSchedule) {
+        alert("Please generate a timetable first.");
+        return;
+      }
+      const text = document.getElementById("textBoxContent").innerText;
+      const shareMsg = `🎓 *College Timetable*\n\n` + text + `\n\nGenerated with College Timetable Generator`;
+      
+      if (navigator.share) {
+        navigator.share({
+          title: "College Timetable",
+          text: shareMsg,
+          url: window.location.href
+        }).catch(() => {});
+      } else {
+        const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMsg + "\n" + window.location.href)}`;
+        window.open(waUrl, "_blank");
+      }
+    }
+
+    function copyScheduleText() {
+      if (!currentSchedule) {
+        alert("Please generate a timetable first.");
+        return;
+      }
+      const text = document.getElementById("textBoxContent").innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("College timetable copied to clipboard!");
+      }).catch(err => {
+        alert("Failed to copy: " + err);
+      });
+    }
+
+    function exportCsv() {
+      if (!currentSchedule) {
+        alert("Please generate a timetable first.");
+        return;
+      }
+      const { days, grid } = currentSchedule;
+      const perDay = grid[0].length;
+      let csv = "Day," + Array.from({ length: perDay }, (_, i) => `Lecture ${i + 1}`).join(",") + "\n";
+      days.forEach((day, idx) => {
+        csv += `${day},` + grid[idx].map(s => `"${s}"`).join(",") + "\n";
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "college_timetable.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Run on load
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
